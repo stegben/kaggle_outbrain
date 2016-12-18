@@ -1,12 +1,17 @@
+from time import time
 import pandas as pd
 from ml_metrics import mapk
 
 
 def df2sub(df):
-    return df.groupby('display_id')['ad_id', 'pred'] \
+    t1 = time()
+    result = df.groupby('display_id')['ad_id', 'pred'] \
              .apply(
                 lambda x: ' '.join(x.sort('pred', ascending=False)['ad_id'].astype(str).tolist())
               )
+    t2 = time()
+    print('generate submission time: {}'.format(str(t2-t1)))
+    return result
 
 
 def df2mapk(df):
