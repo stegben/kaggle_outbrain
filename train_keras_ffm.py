@@ -221,15 +221,15 @@ def model_20161218_fnn_v2(feature_size):
         fnn_layers.append(embed)
 
     concat_embed = merge(fnn_layers, mode='concat')
-    dense = Dropout(0.3)(Dense(256, activation='relu')(concat_embed))
-    dense = Dropout(0.3)(Dense(128, activation='relu')(dense))
-    dense = Dropout(0.3)(Dense(64, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(256, activation='relu')(concat_embed))
+    dense = Dropout(0.2)(Dense(128, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(64, activation='relu')(dense))
     output = Dense(1, activation='sigmoid')(dense)
     # import ipdb; ipdb.set_trace()
     print('compile model')
     input_field = model_inputs.keys()
     model = Model(input=[model_inputs[field] for field in input_field], output=output)
-    optimizer = Adadelta(lr=0.01, rho=0.9)
+    optimizer = Adadelta(lr=0.02, rho=0.9)
     model.compile(optimizer=optimizer, loss='binary_crossentropy')
     print(model.summary())
     return input_field, model
@@ -270,7 +270,7 @@ def main():
         x_subtrain,
         y_subtrain,
         batch_size=512,
-        nb_epoch=3,
+        nb_epoch=20,
         shuffle=True,
         verbose=1,
         validation_data=(x_validation, y_validation)
@@ -284,11 +284,12 @@ def main():
         verbose=1
     ).flatten()
     score = df2mapk(df_validation[['display_id', 'ad_id', 'clicked', 'pred']])
-    validation_sub_fname = '../validation_' + \
-                           data_fname_base + \
+
+    temp_sub_fname = data_fname_base + \
                            '_' + \
                            model_name + '_' +\
                            '%.4f' % score + '.csv'
+    validation_sub_fname = '../validation_result/' + temp_sub_fname
     df_validation[['display_id', 'ad_id', 'clicked', 'pred']].to_csv(validation_sub_fname, index=False)
 
     df_subtrain['pred'] = model.predict(
@@ -296,11 +297,7 @@ def main():
         batch_size=512,
         verbose=1
     ).flatten()
-    subtrain_sub_fname = 'subtrain_' + \
-                           data_fname_base + \
-                           '_' + \
-                           model_name + '_' +\
-                           '%.4f' % score + '.csv'
+    subtrain_sub_fname = '../subtrain_result/' + temp_sub_fname
     df_subtrain[['display_id', 'ad_id', 'clicked', 'pred']].to_csv(subtrain_sub_fname, index=False)
 
     df_test['pred'] = model.predict(
@@ -308,11 +305,7 @@ def main():
         batch_size=512,
         verbose=1
     ).flatten()
-    test_sub_fname = 'test_' + \
-                           data_fname_base + \
-                           '_' + \
-                           model_name + '_' +\
-                           '%.4f' % score + '.csv'
+    test_sub_fname = '../test_result/' + temp_sub_fname
     df_test[['display_id', 'ad_id', 'pred']].to_csv(test_sub_fname, index=False)
 
     # display_id, ad_id, score
