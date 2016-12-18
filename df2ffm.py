@@ -18,7 +18,10 @@ def df2ffm(df, fname, is_train=True):
     #     for row in df_new.iterrows():
     #         fw.write(' '.join([str(r) for r in row]))
     df_new.to_csv(fname, sep=' ', header=False, index=False)
-    df[['display_id', 'ad_id']].to_csv(fname+'.id', index=False)
+    if is_train:
+        df[['display_id', 'ad_id', 'clicked']].to_csv(fname+'.id', index=False)
+    else:
+        df[['display_id', 'ad_id']].to_csv(fname+'.id', index=False)
 
 
 def main():
