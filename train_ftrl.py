@@ -61,7 +61,7 @@ def model_20161216_ver1(model_dir):
 
 def model_20161216_ver2(model_dir):
     ad_id = tf.contrib.layers.sparse_column_with_hash_bucket('ad_id', hash_bucket_size=1e3)
-    uuid = tf.contrib.layers.sparse_column_with_hash_bucket('uuid', hash_bucket_size=1e4)
+    uuid = tf.contrib.layers.sparse_column_with_hash_bucket('uuid', hash_bucket_size=1e3)
     document_id = tf.contrib.layers.sparse_column_with_hash_bucket('document_id', hash_bucket_size=1e3)
     platform = tf.contrib.layers.sparse_column_with_keys(column_name='platform', keys=['1', '2', '3'])
     geo_location = tf.contrib.layers.sparse_column_with_hash_bucket(column_name='geo_location', hash_bucket_size=1e3)
@@ -76,8 +76,8 @@ def model_20161216_ver2(model_dir):
         geo_location,
         campaign_id,
         advertiser_id,
-        tf.contrib.layers.crossed_column([ad_id, uuid], hash_bucket_size=int(1e5)),
-        tf.contrib.layers.crossed_column([ad_id, document_id], hash_bucket_size=int(1e5)),
+        tf.contrib.layers.crossed_column([ad_id, uuid], hash_bucket_size=int(1e3)),
+        tf.contrib.layers.crossed_column([ad_id, document_id], hash_bucket_size=int(1e3)),
     ]
     model = tf.contrib.learn.LinearClassifier(feature_columns=feature_columns,
         optimizer=tf.train.FtrlOptimizer(
@@ -100,10 +100,10 @@ def main():
     model_dir = tempfile.mkdtemp()
     model_name, model = model_20161216_ver2(model_dir)
     model.fit(
-        input_fn=lambda: input_fn(df_subtrain),
+        input_fn=lambda: input_fn(df_subtrain.sample(frac=0.001)),
         steps=20,
         monitors=[tf.contrib.learn.monitors.ValidationMonitor(
-            input_fn=lambda: input_fn(df_validation),
+            input_fn=lambda: input_fn(df_validation.sample(frac=0.001)),
             every_n_steps=1)],
     )
 
