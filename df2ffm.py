@@ -7,6 +7,8 @@ import pandas as pd
 def df2ffm(df, fname, is_train=True):
     df_new = pd.DataFrame()
     drop_column = ['display_id', 'ad_id']
+    if is_train:
+        drop_column.append('clicked')
 
     for idx, col in enumerate(df.drop(drop_column, axis=1)):
         print(idx, col)
