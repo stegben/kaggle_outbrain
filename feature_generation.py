@@ -103,6 +103,9 @@ def main():
     leak_fname = '../leak.csv'
 
     feature_size, df_clicks = generate_data(leak_fname)
+    # perform some feature selection or engineering here
+    # df_clicks = df_clicks[['display_id', 'ad_id', 'ad_id_fact', 'uuid', 'clicked', 'timestamp', 'leak']]
+
     # import ipdb; ipdb.set_trace()
     df_train = df_clicks[df_clicks['clicked'] != NAN_VALUE]
     df_test = df_clicks[df_clicks['clicked'] == NAN_VALUE].drop(['clicked', 'timestamp'], axis=1)
