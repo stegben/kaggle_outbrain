@@ -17,6 +17,7 @@ from keras.layers import merge
 from keras.layers import Dense
 from keras.layers import Activation
 from keras.layers import Dropout
+from keras.layers.advanced_activations import SReLU
 
 from keras.callbacks import EarlyStopping
 
@@ -289,6 +290,448 @@ def model_20161218_fnn_v3(feature_size):
     return input_field, model
 
 
+def model_20161220_fnn_v1(feature_size):
+    # select features
+    # fields = feature_size.keys()
+    FFM_L2 = 0.0000001
+    FFM_DIM = 15
+    fields = [
+        'leak',
+        'weekday',
+        'day',
+        'hour',
+        'geo_1',
+        'geo_2',
+        'geo_3',
+        'geo_location',
+        'platform',
+        'advertiser_id',
+        'campaign_id',
+        'document_id',
+    ]
+
+    # get model
+    print('Create model input')
+    model_inputs = {}
+    fnn_layers = []
+    for field in fields:
+        model_inputs[field] = Input(shape=(1,), dtype='int32', name='input_' + field)
+        embed = Flatten()(Embedding(
+            feature_size[field] + 1,
+            FFM_DIM,
+            input_length=1,
+            name='embed_{}'.format(field),
+            W_regularizer=l2_reg(FFM_L2),
+        )(model_inputs[field]))
+        fnn_layers.append(embed)
+
+    concat_embed = merge(fnn_layers, mode='concat')
+    dense = Dropout(0.2)(Dense(1024, activation='tanh')(concat_embed))
+    dense = Dropout(0.2)(Dense(1024, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(512, activation='relu')(dense))
+    dense = SReLU()(dense)
+    output = Dense(1, activation='sigmoid')(dense)
+    # import ipdb; ipdb.set_trace()
+    print('compile model')
+    input_field = model_inputs.keys()
+    model = Model(input=[model_inputs[field] for field in input_field], output=output)
+    optimizer = Adadelta(lr=0.05, rho=0.9)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy')
+    print(model.summary())
+    return input_field, model
+
+def model_20161222_fnn_v1(feature_size):
+    # select features
+    # fields = feature_size.keys()
+    FFM_L2 = 0.0000001
+    FFM_DIM = 15
+    fields = [
+        'leak',
+        'weekday',
+        'day',
+        'hour',
+        'geo_1',
+        'geo_2',
+        'geo_3',
+        'geo_location',
+        'platform',
+        'advertiser_id',
+        'campaign_id',
+        'cat_1',
+        'cat_2',
+        'source_id',
+        'topic_1',
+        'topic_2',
+        'topic_3',
+        'topic_4',
+        'topic_5',
+        'topic_num',
+    ]
+
+    # get model
+    print('Create model input')
+    model_inputs = {}
+    fnn_layers = []
+    for field in fields:
+        model_inputs[field] = Input(shape=(1,), dtype='int32', name='input_' + field)
+        embed = Flatten()(Embedding(
+            feature_size[field] + 1,
+            FFM_DIM,
+            input_length=1,
+            name='embed_{}'.format(field),
+            W_regularizer=l2_reg(FFM_L2),
+        )(model_inputs[field]))
+        fnn_layers.append(embed)
+
+    concat_embed = merge(fnn_layers, mode='concat')
+    dense = Dropout(0.2)(Dense(1024, activation='tanh')(concat_embed))
+    dense = Dropout(0.2)(Dense(1024, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(512, activation='relu')(dense))
+    dense = SReLU()(dense)
+    output = Dense(1, activation='sigmoid')(dense)
+    # import ipdb; ipdb.set_trace()
+    print('compile model')
+    input_field = model_inputs.keys()
+    model = Model(input=[model_inputs[field] for field in input_field], output=output)
+    optimizer = Adadelta(lr=0.05, rho=0.9)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy')
+    print(model.summary())
+    return input_field, model
+
+
+def model_20161223_fnn_v1(feature_size):
+    # select features
+    # fields = feature_size.keys()
+    FFM_L2 = 0.0000001
+    FFM_DIM = 5
+    fields = [
+        'ad_id_fact',
+        'uuid',
+        'leak',
+        'weekday',
+        'day',
+        'hour',
+        'geo_1',
+        'geo_2',
+        'geo_3',
+        'geo_location',
+        'platform',
+        'advertiser_id',
+        'campaign_id',
+        'cat_1',
+        'cat_2',
+        'source_id',
+        'topic_1',
+        'topic_2',
+        'topic_3',
+        'topic_4',
+        'topic_5',
+        'topic_num',
+    ]
+
+    # get model
+    print('Create model input')
+    model_inputs = {}
+    fnn_layers = []
+    for field in fields:
+        model_inputs[field] = Input(shape=(1,), dtype='int32', name='input_' + field)
+        embed = Flatten()(Embedding(
+            feature_size[field] + 1,
+            FFM_DIM,
+            input_length=1,
+            name='embed_{}'.format(field),
+            W_regularizer=l2_reg(FFM_L2),
+        )(model_inputs[field]))
+        fnn_layers.append(embed)
+
+    concat_embed = merge(fnn_layers, mode='concat')
+    dense = Dropout(0.2)(Dense(1024, activation='tanh')(concat_embed))
+    dense = Dropout(0.2)(Dense(1024, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(512, activation='relu')(dense))
+    dense = SReLU()(dense)
+    output = Dense(1, activation='sigmoid')(dense)
+    # import ipdb; ipdb.set_trace()
+    print('compile model')
+    input_field = model_inputs.keys()
+    model = Model(input=[model_inputs[field] for field in input_field], output=output)
+    optimizer = Adadelta(lr=0.1, rho=0.9)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy')
+    print(model.summary())
+    return input_field, model
+
+
+def model_20161223_fnn_v1(feature_size):
+    # select features
+    # fields = feature_size.keys()
+    FFM_L2 = 0.0000001
+    FFM_DIM = 5
+    fields = [
+        'ad_id_fact',
+        'uuid',
+        'leak',
+        'weekday',
+        'day',
+        'hour',
+        'geo_1',
+        'geo_2',
+        'geo_3',
+        'geo_location',
+        'platform',
+        'advertiser_id',
+        'campaign_id',
+        'cat_1',
+        'cat_2',
+        'source_id',
+        'topic_1',
+        'topic_2',
+        'topic_3',
+        'topic_4',
+        'topic_5',
+        'topic_num',
+    ]
+
+    # get model
+    print('Create model input')
+    model_inputs = {}
+    fnn_layers = []
+    for field in fields:
+        model_inputs[field] = Input(shape=(1,), dtype='int32', name='input_' + field)
+        embed = Flatten()(Embedding(
+            feature_size[field] + 1,
+            FFM_DIM,
+            input_length=1,
+            name='embed_{}'.format(field),
+            W_regularizer=l2_reg(FFM_L2),
+        )(model_inputs[field]))
+        fnn_layers.append(embed)
+
+    concat_embed = merge(fnn_layers, mode='concat')
+    dense = Dropout(0.2)(Dense(1024, activation='tanh')(concat_embed))
+    dense = Dropout(0.2)(Dense(1024, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(512, activation='relu')(dense))
+    dense = SReLU()(dense)
+    output = Dense(1, activation='sigmoid')(dense)
+    # import ipdb; ipdb.set_trace()
+    print('compile model')
+    input_field = model_inputs.keys()
+    model = Model(input=[model_inputs[field] for field in input_field], output=output)
+    optimizer = Adadelta(lr=0.1, rho=0.9)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy')
+    print(model.summary())
+    return input_field, model
+
+
+def model_20161224_fnn_v1(feature_size):
+    # select features
+    # fields = feature_size.keys()
+    FFM_L2 = 0.0000001
+    FFM_DIM = 15
+    fields = [
+        'leak',
+        'weekday',
+        'day',
+        'hour',
+        'geo_1',
+        'geo_2',
+        'geo_3',
+        'geo_location',
+        'platform',
+        'advertiser_id',
+        'campaign_id',
+        'cat_1',
+        'cat_2',
+        'source_id',
+        'topic_1',
+        'topic_2',
+        'topic_3',
+        'topic_4',
+        'topic_5',
+        'topic_num',
+    ]
+
+    # get model
+    print('Create model input')
+    model_inputs = {}
+    fnn_layers = []
+    for field in fields:
+        model_inputs[field] = Input(shape=(1,), dtype='int32', name='input_' + field)
+        embed = Flatten()(Embedding(
+            feature_size[field] + 1,
+            FFM_DIM,
+            input_length=1,
+            name='embed_{}'.format(field),
+            W_regularizer=l2_reg(FFM_L2),
+        )(model_inputs[field]))
+        fnn_layers.append(embed)
+
+    concat_embed = merge(fnn_layers, mode='concat')
+    dense = Dropout(0.2)(Dense(1024, activation='tanh')(concat_embed))
+    dense = Dropout(0.2)(Dense(1024, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(512, activation='linear')(dense))
+    dense = SReLU()(dense)
+    output = Dense(1, activation='sigmoid')(dense)
+    # import ipdb; ipdb.set_trace()
+    print('compile model')
+    input_field = model_inputs.keys()
+    model = Model(input=[model_inputs[field] for field in input_field], output=output)
+    optimizer = Adadelta(lr=0.05, rho=0.9)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy')
+    print(model.summary())
+    return input_field, model
+
+def model_20161225_fnn_v1(feature_size):
+    # select features
+    # fields = feature_size.keys()
+    FFM_L2 = 0.0000001
+    FFM_DIM = 15
+    fields = [
+        'leak',
+        'weekday',
+        'day',
+        'hour',
+        'geo_1',
+        'geo_2',
+        'geo_3',
+        'geo_location',
+        'platform',
+        'advertiser_id',
+        'campaign_id',
+        'cat_1',
+        'cat_2',
+        'source_id',
+        'topic_1',
+        'topic_2',
+        'topic_3',
+        'topic_4',
+        'topic_5',
+        'topic_num',
+    ]
+
+    # get model
+    print('Create model input')
+    model_inputs = {}
+    fnn_layers = []
+    for field in fields:
+        model_inputs[field] = Input(shape=(1,), dtype='int32', name='input_' + field)
+        embed = Flatten()(Embedding(
+            feature_size[field] + 1,
+            FFM_DIM,
+            input_length=1,
+            name='embed_{}'.format(field),
+            W_regularizer=l2_reg(FFM_L2),
+        )(model_inputs[field]))
+        fnn_layers.append(embed)
+
+    concat_embed = merge(fnn_layers, mode='concat')
+    dense = Dropout(0.2)(Dense(1024, activation='tanh')(concat_embed))
+    dense = Dropout(0.2)(Dense(1024, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(1024, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(512, activation='linear')(dense))
+    dense = SReLU()(dense)
+    output = Dense(1, activation='sigmoid')(dense)
+    # import ipdb; ipdb.set_trace()
+    print('compile model')
+    input_field = model_inputs.keys()
+    model = Model(input=[model_inputs[field] for field in input_field], output=output)
+    optimizer = Adadelta(lr=0.02, rho=0.9)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy')
+    print(model.summary())
+    return input_field, model
+
+
+def model_20161226_fnn_v1(feature_size):
+    # select features
+    # fields = feature_size.keys()
+    FFM_L2 = 0.0000001
+    FFM_DIM = 15
+    fields = [
+        'leak',
+        'weekday',
+        'day',
+        'hour',
+        'geo_location',
+        'platform',
+        'campaign_id',
+        'cat_1',
+        'source_id',
+        'topic_1',
+        'topic_2',
+    ]
+
+    # get model
+    print('Create model input')
+    model_inputs = {}
+    fnn_layers = []
+    for field in fields:
+        model_inputs[field] = Input(shape=(1,), dtype='int32', name='input_' + field)
+        embed = Flatten()(Embedding(
+            feature_size[field] + 1,
+            FFM_DIM,
+            input_length=1,
+            name='embed_{}'.format(field),
+            W_regularizer=l2_reg(FFM_L2),
+        )(model_inputs[field]))
+        fnn_layers.append(embed)
+
+    concat_embed = merge(fnn_layers, mode='concat')
+    dense = Dropout(0.2)(Dense(1024, activation='tanh')(concat_embed))
+    dense = Dropout(0.2)(Dense(1024, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(512, activation='linear')(dense))
+    dense = SReLU()(dense)
+    output = Dense(1, activation='sigmoid')(dense)
+    # import ipdb; ipdb.set_trace()
+    print('compile model')
+    input_field = model_inputs.keys()
+    model = Model(input=[model_inputs[field] for field in input_field], output=output)
+    optimizer = Adadelta(lr=0.02, rho=0.9)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy')
+    print(model.summary())
+    return input_field, model
+
+def model_20161229_fnn_v1(feature_size):
+    # select features
+    # fields = feature_size.keys()
+    FFM_L2 = 0.000001
+    FFM_DIM = 5
+    fields = [
+        'leak',
+        'campaign_id',
+        'document_id_ad',
+        'document_id_orig',
+    ]
+
+    # get model
+    print('Create model input')
+    model_inputs = {}
+    fnn_layers = []
+    for field in fields:
+        model_inputs[field] = Input(shape=(1,), dtype='int32', name='input_' + field)
+        embed = Flatten()(Embedding(
+            feature_size[field] + 1,
+            FFM_DIM,
+            input_length=1,
+            name='embed_{}'.format(field),
+            W_regularizer=l2_reg(FFM_L2),
+        )(model_inputs[field]))
+        fnn_layers.append(embed)
+
+    concat_embed = merge(fnn_layers, mode='concat')
+    dense = Dropout(0.2)(Dense(512, activation='tanh')(concat_embed))
+    dense = Dropout(0.2)(Dense(728, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(1024, activation='relu')(dense))
+    dense = Dropout(0.2)(Dense(512, activation='linear')(dense))
+    dense = SReLU()(dense)
+    output = Dense(1, activation='sigmoid')(dense)
+    # import ipdb; ipdb.set_trace()
+    print('compile model')
+    input_field = model_inputs.keys()
+    model = Model(input=[model_inputs[field] for field in input_field], output=output)
+    optimizer = Adadelta(lr=0.02, rho=0.9)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy')
+    print(model.summary())
+    return input_field, model
+
+
 def main():
     print('Read data...')
     data_fname = sys.argv[1]
@@ -312,8 +755,13 @@ def main():
     # input_field, model = model_20161217_fnn_v1(feature_size)
     # input_field, model = model_20161218_fnn_v1(feature_size)
     # input_field, model = model_20161218_fnn_v2(feature_size)
-    input_field, model = model_20161218_fnn_v3(feature_size)
-    model_name = model_20161218_fnn_v3.__name__
+    # input_field, model = model_20161220_fnn_v1(feature_size)
+    # input_field, model = model_20161222_fnn_v1(feature_size)
+    # input_field, model = model_20161223_fnn_v1(feature_size)
+    # input_field, model = model_20161224_fnn_v1(feature_size)
+    # input_field, model = model_20161225_fnn_v1(feature_size)
+    input_field, model = model_20161229_fnn_v1(feature_size)
+    model_name = model_20161229_fnn_v1.__name__
 
     x_subtrain = [df_subtrain[field].values for field in input_field]
     x_validation = [df_validation[field].values for field in input_field]
@@ -329,8 +777,8 @@ def main():
     model.fit(
         x_subtrain,
         y_subtrain,
-        batch_size=768,
-        nb_epoch=20,
+        batch_size=512,
+        nb_epoch=30,
         shuffle=True,
         verbose=1,
         validation_data=(x_validation, y_validation),
@@ -341,7 +789,7 @@ def main():
     # generate predictions for both train, validation and test
     df_validation['pred'] = model.predict(
         x_validation,
-        batch_size=512,
+        batch_size=1024,
         verbose=1
     ).flatten()
     score = df2mapk(df_validation[['display_id', 'ad_id', 'clicked', 'pred']])

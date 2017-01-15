@@ -37,9 +37,9 @@ NEED_RETRAIN = True
 # ]
 PARAM_SEARCHED = [
     {
-        'lambda_': [1e-5, 3e-5, 1e-4],
+        'lambda_': [3e-5, 1e-4, 3e-4],
         'eta': [0.1], # based on convention
-        'factor': [32],
+        'factor': [24, 32, 40],
         'iteration': [30],
     },
 ]
@@ -121,7 +121,7 @@ def main():
     partial_train = partial(exec_libffm_train,
         subtrain_fname=subtrain_fname,
         validation_fname=validation_fname,
-        nr_threads=30,
+        nr_threads=16,
         auto_stop=True,
     )
     for param in LIBFFM_PARAM:

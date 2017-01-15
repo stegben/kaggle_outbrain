@@ -1,3 +1,5 @@
+import os
+import gc
 import sys
 import pickle as pkl
 
@@ -12,19 +14,25 @@ def df2svm(df, fname, feature_size, is_train=True):
         drop_column.append('clicked')
 
     feature_start_idx = 0
+    print(df.columns)
     for idx, col in enumerate(df.drop(drop_column, axis=1)):
         print(idx, col)
         df_new[str(idx + 1)] = (df[col].astype(np.int32) + feature_start_idx).astype(str) + ':' + str(1)
         feature_start_idx += feature_size[col] + 1
+        del df[col]
     if is_train:
-        df_new['0'] = df['clicked']
+        df_new.insert(0, '0', df['clicked'])
         drop_column.append('clicked')
     else:
-        df_new['0'] = 0
+        df_new.insert(0, '0', 0)
     # with open(fname, 'w') as fw:
     #     for row in df_new.iterrows():
     #         fw.write(' '.join([str(r) for r in row]))
-    df_new.sort_index(axis=1).to_csv(fname, sep=' ', header=False, index=False)
+    # columns = list(df_new.columns)
+    # columns.remove('0')
+    # columns = ['0'] + columns
+    df_new.to_csv(fname, sep=' ', header=False, index=False)
+    # df_new.sort_index(axis=1).to_csv(fname, sep=' ', header=False, index=False)
     if is_train:
         df[['display_id', 'ad_id', 'clicked']].to_csv(fname+'.id', index=False)
     else:
@@ -44,11 +52,19 @@ def main():
     feature_size = data['feature_size']
 
     print('Store svm data')
-    df2svm(df_subtrain, '../subtrain_' + libsvm_data_fname, feature_size, is_train=True)
-    del df_subtrain
-    df2svm(df_validation, '../validation_' + libsvm_data_fname, feature_size, is_train=True)
-    del df_validation
-    df2svm(df_test, '../test_' + libsvm_data_fname, feature_size, is_train=False)
+    subtrain_fname = '../subtrain_' + libsvm_data_fname
+    validation_fname = '../validation_' + libsvm_data_fname
+    test_fname = '../test_' + libsvm_data_fname
+    if not os.path.exists(subtrain_fname):
+        df2svm(df_subtrain, subtrain_fname, feature_size, is_train=True)
+        del df_subtrain
+        gc.collect()
+    if not os.path.exists(validation_fname):
+        df2svm(df_validation, validation_fname, feature_size, is_train=True)
+        del df_validation
+        gc.collect()
+    if not os.path.exists(test_fname):
+        df2svm(df_test, test_fname, feature_size, is_train=False)
 
 
 if __name__ == '__main__':

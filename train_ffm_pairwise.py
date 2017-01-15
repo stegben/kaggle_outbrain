@@ -7,9 +7,8 @@ import uuid
 
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import ParameterGrid
 
-from utils import df2mapk
+from utils import pairwise2mapk
 
 
 FFM_TRAIN_PATH = '../libffm/ffm-train'
@@ -18,32 +17,23 @@ TEMP_DIR = '../temp'
 
 NEED_RETRAIN = True
 
-# LIBFFM_PARAM = [
-#     # {'lambda_': 1e-6, 'factor': 5, 'iteration': 30, 'eta': 0.1},
-#     # {'lambda_': 3e-6, 'factor': 5, 'iteration': 30, 'eta': 0.1},
-#     # {'lambda_': 1e-5, 'factor': 5, 'iteration': 30, 'eta': 0.1},
-#     # {'lambda_': 3e-5, 'factor': 5, 'iteration': 30, 'eta': 0.1},
-#     # {'lambda_': 1e-4, 'factor': 5, 'iteration': 30, 'eta': 0.1},
-#     # {'lambda_': 1e-6, 'factor': 12, 'iteration': 30, 'eta': 0.1},
-#     # {'lambda_': 3e-6, 'factor': 12, 'iteration': 30, 'eta': 0.01},
-#     # {'lambda_': 1e-5, 'factor': 12, 'iteration': 30, 'eta': 0.1},
-#     # {'lambda_': 3e-5, 'factor': 12, 'iteration': 30, 'eta': 0.1},
-#     # {'lambda_': 1e-4, 'factor': 12, 'iteration': 30, 'eta': 0.1},
-#     {'lambda_': 5e-5, 'factor': 32, 'iteration': 30, 'eta': 0.2},
-#     # {'lambda_': 3e-6, 'factor': 32, 'iteration': 30, 'eta': 0.1},
-#     {'lambda_': 1e-4, 'factor': 32, 'iteration': 30, 'eta': 0.2},
-#     # {'lambda_': 3e-5, 'factor': 32, 'iteration': 30, 'eta': 0.1},
-#     {'lambda_': 2e-4, 'factor': 32, 'iteration': 30, 'eta': 0.2},
-# ]
-PARAM_SEARCHED = [
-    {
-        'lambda_': [1e-5, 3e-5, 1e-4],
-        'eta': [0.1], # based on convention
-        'factor': [32],
-        'iteration': [30],
-    },
+LIBFFM_PARAM = [
+    # {'lambda_': 1e-6, 'factor': 5, 'iteration': 30, 'eta': 0.1},
+    # {'lambda_': 3e-6, 'factor': 5, 'iteration': 30, 'eta': 0.1},
+    # {'lambda_': 1e-5, 'factor': 5, 'iteration': 30, 'eta': 0.1},
+    # {'lambda_': 3e-5, 'factor': 5, 'iteration': 30, 'eta': 0.1},
+    # {'lambda_': 1e-4, 'factor': 5, 'iteration': 30, 'eta': 0.1},
+    # {'lambda_': 1e-6, 'factor': 12, 'iteration': 30, 'eta': 0.1},
+    # {'lambda_': 1e-6, 'factor': 12, 'iteration': 30, 'eta': 0.05},
+    # {'lambda_': 1e-5, 'factor': 12, 'iteration': 30, 'eta': 0.05},
+    # {'lambda_': 1e-4, 'factor': 12, 'iteration': 30, 'eta': 0.05},
+    # {'lambda_': 1e-6, 'factor': 24, 'iteration': 30, 'eta': 0.05},
+    # {'lambda_': 1e-5, 'factor': 24, 'iteration': 30, 'eta': 0.05},
+    # {'lambda_': 1e-4, 'factor': 24, 'iteration': 30, 'eta': 0.05},
+    # {'lambda_': 1e-6, 'factor': 32, 'iteration': 30, 'eta': 0.05},
+    {'lambda_': 1e-5, 'factor': 32, 'iteration': 30, 'eta': 0.05},
+    {'lambda_': 1e-4, 'factor': 32, 'iteration': 30, 'eta': 0.05},
 ]
-LIBFFM_PARAM = list(ParameterGrid(PARAM_SEARCHED))
 """
 -s 24 -k 3 -r 0.01 -l 0.00002 -t 100 --auto-stop -p
 """
@@ -96,7 +86,7 @@ def exec_libffm_predict(
     with open(output_fname, 'r') as f:
         lines = f.readlines()
         pred = [float(line.rstrip()) for line in lines]
-    df_input = pd.read_csv(input_id_fname, dtype=str)
+    df_input = pd.read_csv(input_id_fname, dtype=int)
     df_input['pred'] = pred
     if output_fname is None:
         os.remove(output_fname)
@@ -121,7 +111,7 @@ def main():
     partial_train = partial(exec_libffm_train,
         subtrain_fname=subtrain_fname,
         validation_fname=validation_fname,
-        nr_threads=30,
+        nr_threads=13,
         auto_stop=True,
     )
     for param in LIBFFM_PARAM:
@@ -132,8 +122,9 @@ def main():
         partial_train(model_fname=model_fname, **param)
 
         df_validation = exec_libffm_predict(model_fname, validation_fname, validation_id_fname)
-        score = df2mapk(df_validation[['display_id', 'ad_id', 'clicked', 'pred']])
+        score = pairwise2mapk(df_validation[['display_id', 'ad_id_1', 'ad_id_2', 'clicked', 'pred']])
         print('MAPK12 score on validation set: %.5f' % score)
+        # import ipdb; ipdb.set_trace()
         if score > best_score:
             print('Good, we got a better model')
             best_score = score
@@ -142,7 +133,7 @@ def main():
 
     # Finish training, use best param to retrain a gain
     df_validation = exec_libffm_predict(best_model_fname, validation_fname, validation_id_fname)
-    score = df2mapk(df_validation[['display_id', 'ad_id', 'clicked', 'pred']])
+    score = pairwise2mapk(df_validation[['display_id', 'ad_id_1', 'ad_id_2', 'clicked', 'pred']])
     param_name = '__'.join([k + '-' + str(v) for k, v in best_param.items()])
     temp_sub_fname = data_fname_base \
                      +  '_libffm_' \
@@ -151,7 +142,7 @@ def main():
 
     print('store validation...')
     validation_sub_fname = '../validation_result/' + temp_sub_fname
-    df_validation[['display_id', 'ad_id', 'clicked', 'pred']].to_csv(validation_sub_fname, index=False)
+    df_validation[['display_id', 'ad_id_1', 'ad_id_2', 'clicked', 'pred']].to_csv(validation_sub_fname, index=False)
 
     # print('store subtrain...')
     # df_subtrain = exec_libffm_predict(model_fname, subtrain_fname, subtrain_id_fname)
@@ -161,10 +152,10 @@ def main():
     print('store test...')
     df_test = exec_libffm_predict(model_fname, test_fname, test_id_fname)
     test_sub_fname = '../test_result/' + temp_sub_fname
-    df_test[['display_id', 'ad_id', 'pred']].to_csv(test_sub_fname, index=False)
+    df_test[['display_id', 'ad_id_1', 'ad_id_2', 'pred']].to_csv(test_sub_fname, index=False)
     for model_fname in model_fnames:
         os.remove(model_fname)
-    import ipdb; ipdb.set_trace()
+    # import ipdb; ipdb.set_trace()
 
 if __name__ == '__main__':
     main()

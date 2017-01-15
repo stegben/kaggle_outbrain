@@ -6,15 +6,22 @@ import pickle as pkl
 import pandas as pd
 
 
-def df2ffm(df, fname, is_train=True):
+def df2ffm(df, fname, feature_size, is_train=True):
     df_new = pd.DataFrame()
     drop_column = ['display_id', 'ad_id']
     if is_train:
         drop_column.append('clicked')
-    
+
+    feature_start_idx = 0
     for idx, col in enumerate(df.drop(drop_column, axis=1)):
+        if col in ['clicked_day', 'likelihood']:
+            print(idx, col)
+            df_new[str(idx + 1)] = str(idx+1) + ':' + str(int(feature_start_idx)) + ':' + df[col].astype(str)
+            feature_start_idx += 1
+            continue
         print(idx, col)
-        df_new[str(idx + 1)] = str(idx+1) + ':' + df[col].astype(str) + ':' + str(1)
+        df_new[str(idx + 1)] = str(idx+1) + ':' + (df[col] + feature_start_idx).astype(int).astype(str) + ':' + str(1)
+        feature_start_idx += feature_size[col] + 1
         del df[col]
     if is_train:
         df_new.insert(0, '0', df['clicked'])
@@ -42,19 +49,20 @@ def main():
     df_subtrain = data['subtrain']
     df_validation = data['validation']
     df_test = data['test']
+    feature_size = data['feature_size']
 
     print('Store ffm data')
     subtrain_fname = '../subtrain_' + libffm_data_fname
     validation_fname = '../validation_' + libffm_data_fname
     if not os.path.exists(subtrain_fname):
-        df2ffm(df_subtrain, subtrain_fname, is_train=True)
+        df2ffm(df_subtrain, subtrain_fname, feature_size, is_train=True)
         del df_subtrain
         gc.collect()
     if not os.path.exists(validation_fname):
-        df2ffm(df_validation, validation_fname, is_train=True)
+        df2ffm(df_validation, validation_fname, feature_size, is_train=True)
         del df_validation
         gc.collect()
-    df2ffm(df_test, '../test_' + libffm_data_fname, is_train=False)
+    df2ffm(df_test, '../test_' + libffm_data_fname, feature_size, is_train=False)
 
 
 if __name__ == '__main__':
